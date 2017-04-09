@@ -23,24 +23,24 @@
 </template>
 
 <script>
-(function () {
-  var Sidecar = require('./lib/sidecar')
-  var importDoc = document.currentScript.ownerDocument;
-
-  var resultPrototype = Object.create(HTMLElement.prototype);
+  (function () {
+  let Sidecar = require('./lib/sidecar');
+  let importDoc = document.currentScript.ownerDocument;
+  let resultPrototype = Object.create(HTMLElement.prototype);
 
   resultPrototype.createdCallback = function() {
-    var t = importDoc.querySelector('#tmpl-sidecar-contents');
-    var clone = document.importNode(t.content, true);
-    var root = this.root = this.createShadowRoot();
+
+    let t = importDoc.querySelector('#tmpl-sidecar-contents');
+    let clone = document.importNode(t.content, true);
+    let root = this.root = this.createShadowRoot();
     this.root.appendChild(clone);
 
-    var ipc = require('ipc');
+    const {ipcRenderer} = require('electron');
 
-    var container = this.root.getElementById('container');
+    let container = this.root.getElementById('container');
 
-    var sidecar = new Sidecar(container, importDoc);
-    ipc.on('message', sidecar.consume.bind(sidecar));
+    let sidecar = new Sidecar(container, importDoc);
+    ipcRenderer.on('message', (event, message) => { sidecar.consume.bind(sidecar)(message); });
   };
 
   document.registerElement('sidecar-contents', {prototype: resultPrototype});

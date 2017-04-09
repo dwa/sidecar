@@ -1,7 +1,7 @@
 <!-- Footer component -->
 
 <script>
-var ipc = require('ipc');
+const {ipcRenderer} = require('electron');
 </script>
 
 
@@ -74,7 +74,7 @@ var ipc = require('ipc');
 </template>
 
 <script>
-(function () {
+  (function () {
   var importDoc = document.currentScript.ownerDocument;
 
   var prototype = Object.create(HTMLElement.prototype);
@@ -87,7 +87,7 @@ var ipc = require('ipc');
 
     this.root.querySelector("#status").textContent = this.getAttribute("status") || "idle";
 
-    ipc.on('message', this.acceptKernelMessage.bind(this));
+  ipcRenderer.on('message', (event, message) => { this.acceptKernelMessage.bind(this)(message); });
 
   };
 

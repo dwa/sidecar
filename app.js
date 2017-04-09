@@ -1,18 +1,21 @@
 #!/usr/bin/env electron
 "use strict";
 
-var app = require('app');  // Electron app
-var BrowserWindow = require('browser-window');  // Creating Browser Windows
+const {app, BrowserWindow} = require("electron");
 
-var globalShortcut = require('global-shortcut');
+const Shortcut = require('electron-shortcut');
 
-var jupyter = require("./lib/jupyter.js");
-var RuntimeWatch = require("./lib/runtime-watch.js");
+let jupyter = require("./lib/jupyter.js");
+let RuntimeWatch = require("./lib/runtime-watch.js");
 
-var jp = require('jupyter-paths');
+let jp = require('jupyter-paths');
 
 // Report crashes to our server.
-require('crash-reporter').start();
+// only run it in local development (check for this however you like)
+if(process.execPath.indexOf('electron-prebuilt') > -1) {
+  // it handles shutting itself down automatically
+  require('electron-local-crash-reporter').start();
+}
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function() {
@@ -24,7 +27,7 @@ function launchSideCar(session) {
   // Keep a global reference of the side car window object
   // If we don't, the window will be closed automatically when the javascript
   // object is GCed.
-  var sideCar = null;
+  let sideCar = null;
 
   // Create the browser window.
   sideCar = new BrowserWindow({
@@ -35,7 +38,7 @@ function launchSideCar(session) {
   });
 
   // and load the index.html of the app.
-  sideCar.loadUrl('file://' + __dirname + '/index.html');
+  sideCar.loadURL('file://' + __dirname + '/index.html');
 
   sideCar.webContents.on('did-finish-load', function () {
     session.on(function (message) {
@@ -59,8 +62,8 @@ let liveSidecars = new Map();
 function updateKernel(connFiles) {
   for (let i = 0; i < connFiles.length; i++) {
     let
-      connPath = connFiles[i].path,
-      connStat = connFiles[i].stat;
+    connPath = connFiles[i].path,
+    connStat = connFiles[i].stat;
 
     if (connStat.nlink !== 0) {
       // This connection file is still present. Create a connection and probe its heartbeat to
@@ -130,24 +133,24 @@ function handleDeadKernel(connPath) {
   }
 }
 
-var kw = new RuntimeWatch(updateKernel, jp.paths.runtime[0]);
+let kw = new RuntimeWatch(updateKernel, jp.runtimeDir());
 
 // This method will be called when Electron has done every
 // initialization and is ready for creating browser windows.
 app.on('ready', function() {
-		globalShortcut.register('Alt+CmdOrCtrl+I', function () {
-			var win = BrowserWindow.getFocusedWindow();
+  // Shortcut.register('Alt+CmdOrCtrl+I', function () {
+  // 	let win = BrowserWindow.getFocusedWindow();
 
-			if (win) {
-				win.toggleDevTools();
-			}
-		});
+  // 	if (win) {
+  // 		win.toggleDevTools();
+  // 	}
+  // });
 
-		globalShortcut.register('CmdOrCtrl+R', function () {
-			var win = BrowserWindow.getFocusedWindow();
+  Shortcut.register('CmdOrCtrl+R', function () {
+    let win = BrowserWindow.getFocusedWindow();
 
-			if (win) {
-				win.reloadIgnoringCache();
-			}
-		});
+    if (win) {
+      win.reload()
+    }
+  });
 });
